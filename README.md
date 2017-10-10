@@ -186,5 +186,9 @@ bin/hdfs dfs -put ~/states/* /input/states/
 ```
 4. Run code
 ```bash
-bin/hadoop jar ~/cs643proj/sw.jar StateWords /input/states /output/172.31.11.255
+bin/hadoop jar ~/cs643proj/sw.jar StateWords /input/states /output/
+bin/hdfs dfs -cat /output/job1/*
+bin/hdfs dfs -cat /output/job2/*
+bin/hdfs dfs -cat /output/job3/*
+bin/hdfs dfs -cat /output/job4/*
 ```
