@@ -74,22 +74,45 @@ cd ~/hadoop-2.7.4
 	</property>
 </configuration>
 ```
+* etc/hadoop/yarn-site.xml
+```xml
+<configuration>
+
+<!-- Site specific YARN configuration properties -->
+   <property>
+    <name>yarn.nodemanager.aux-services</name>
+    <value>mapreduce_shuffle</value>
+  </property>
+  <property>
+    <name>yarn.nodemanager.aux-services.mapreduce.shuffle.class</name>
+    <value>org.apache.hadoop.mapred.ShuffleHandler</value>
+  </property>
+  <property>
+    <name>yarn.resourcemanager.hostname</name>
+    <value>hadoop-master</value>
+  </property>
+</configuration>
+```
 * etc/hadoop/hdfs-site.xml
 ```xml
 <configuration>
 	<property>
 		<name>dfs.replication</name>
-		<value>1</value>
+		<value>3</value>
 	</property>
 </configuration>
 ```
 * etc/hadoop/mapred-site.xml
 ```xml
 <configuration>
-        <property>
-                <name>mapred.job.tracker</name>
-                <value>hadoop-master:9001</value>
-        </property>
+	<property>
+		<name>mapreduce.jobtracker.address</name>
+		<value>hadoop-master:54311</value>
+	</property>
+	<property>
+		<name>mapreduce.framework.name</name>
+		<value>yarn</value>
+	</property>
 </configuration>
 ```
 * etc/hadoop/masters
@@ -115,5 +138,53 @@ bin/hadoop namenode -format
 5. Start Hadoop Services
 ```bash
 sbin/start-dfs.sh
+sbin/start-yarn.sh
 ```
 
+Here is some sample output of start-dfs.sh for my cluster, to prove I got it working in my AWS EC2 environment:
+```bash
+[ec2-user@ip-172-31-11-255 hadoop-2.7.4]$ cat /etc/hosts
+127.0.0.1   localhost localhost.localdomain localhost4 localhost4.localdomain4
+::1         localhost6 localhost6.localdomain6
+
+172.31.11.255 hadoop-master
+172.31.5.91 hadoop-slave1
+172.31.1.126 hadoop-slave2
+172.31.3.97 hadoop-slave3
+[ec2-user@ip-172-31-11-255 hadoop-2.7.4]$ sbin/start-dfs.sh
+Starting namenodes on [hadoop-master]
+hadoop-master: starting namenode, logging to /home/ec2-user/hadoop-2.7.4/logs/hadoop-ec2-user-namenode-ip-172-31-11-255.out
+hadoop-slave2: starting datanode, logging to /home/ec2-user/hadoop-2.7.4/logs/hadoop-ec2-user-datanode-ip-172-31-1-126.out
+hadoop-slave3: starting datanode, logging to /home/ec2-user/hadoop-2.7.4/logs/hadoop-ec2-user-datanode-ip-172-31-3-97.out
+hadoop-slave1: starting datanode, logging to /home/ec2-user/hadoop-2.7.4/logs/hadoop-ec2-user-datanode-ip-172-31-5-91.out
+Starting secondary namenodes [0.0.0.0]
+0.0.0.0: starting secondarynamenode, logging to /home/ec2-user/hadoop-2.7.4/logs/hadoop-ec2-user-secondarynamenode-ip-172-31-11-255.out
+[ec2-user@ip-172-31-11-255 hadoop-2.7.4]$
+```
+
+## Run My MapReduce Project
+
+1. Pull down my code
+```bash
+cd ~
+wget https://github.com/terrabyteian/cs643prog/archive/master.zip
+unzip master.zip
+mv cs643proj-master cs643proj
+```
+2. Pull down Wikipedia pages to ~/states using the script I wrote
+```bash
+mkdir states
+cs643proj/pull-states.sh states
+```
+3. Make input/output directories in hdfs and move states to it
+```bash
+cd hadoop-2.7.4
+bin/hdfs dfs -mkdir /input/
+bin/hdfs dfs -mkdir /input/states
+bin/hdfs dfs -mkdir /output/
+bin/hdfs dfs -put ~/states/* /input/states/
+```
+4. Run code
+```bash
+bin/hadoop jar ~/cs643proj/sw.jar StateWords /input/states /output/172.31.11.255
+```
