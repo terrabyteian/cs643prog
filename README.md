@@ -1,5 +1,9 @@
 # NJIT CS 643 F17 Project by Ian Hall
 
+Please note that Project code is derived from the MapReduce WordCount example found here: https://hadoop.apache.org/docs/stable/hadoop-mapreduce-client/hadoop-mapreduce-client-core/MapReduceTutorial.html 
+
+And note that the cluster it built loosely based on the steps listed here: https://www.tutorialspoint.com/hadoop/hadoop_multi_node_cluster.htm 
+
 ## AMI Build Steps
 
 As user ec2-user, performed the following steps:
@@ -34,7 +38,82 @@ Owner: 567025740324
 
 Source: 567025740324/Hadoop-AMI
 
-## Name Node Configuration
+## Configure Cluster
 
 Using the above custom Hadoop AMI, perform following steps:
+
+1. Pick a master IP and slave IPs. Add following lines to /etc/hosts on each node (subsitute IP addresses with public IPs of your cluster)
+```
+172.31.11.255 hadoop-master
+172.31.5.91 hadoop-slave1
+172.31.1.126 hadoop-slave2
+172.31.3.97 hadoop-slave3
+```
+2. Configure passwordless login on each node, using the .pem file provided by AWS. This is assuming each node uses the same key configured by AWS. 
+* modify ~/.ssh/key.pem and add contents of your .pem
+* modify ~/.ssh/config, add "IdentityFile ~/.ssh/key.pem"
+* Change ownership
+```bash
+chmod 600 ~/.ssh/config
+chmod 600 ~/.ssh/key.pem
+```
+3. Change content of following files on hadoop-master:
+```bash
+cd ~/hadoop-2.7.4
+```
+* etc/hadoop/core-site.xml
+```xml
+<configuration>
+	<property>
+		<name>fs.defaultFS</name>
+		<value>hdfs://hadoop-master:9000</value>
+	</property>
+	<property>
+		<name>dfs.permissions</name>
+		<value>false</value>
+	</property>
+</configuration>
+```
+* etc/hadoop/hdfs-site.xml
+```xml
+<configuration>
+	<property>
+		<name>dfs.replication</name>
+		<value>1</value>
+	</property>
+</configuration>
+```
+* etc/hadoop/mapred-site.xml
+```xml
+<configuration>
+        <property>
+                <name>mapred.job.tracker</name>
+                <value>hadoop-master:9001</value>
+        </property>
+</configuration>
+```
+* etc/hadoop/masters
+```
+hadoop-master
+```
+* etc/hadoop/slaves
+```
+hadoop-slave1
+hadoop-slave2
+hadoop-slave3
+```
+* Distribute xml files to other nodes
+```bash
+scp etc/hadoop/*.xml hadoop-slave1:~/hadoop-2.7.4/etc/hadoop/
+scp etc/hadoop/*.xml hadoop-slave2:~/hadoop-2.7.4/etc/hadoop/
+scp etc/hadoop/*.xml hadoop-slave3:~/hadoop-2.7.4/etc/hadoop/
+```
+4. Format namenode on master
+```bash
+bin/hadoop namenode -format
+```
+5. Start Hadoop Services
+```bash
+sbin/start-dfs.sh
+```
 
