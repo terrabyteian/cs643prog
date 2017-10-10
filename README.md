@@ -22,6 +22,18 @@ wget http://apache.claz.org/hadoop/common/hadoop-2.7.4/hadoop-2.7.4.tar.gz
 tar -zxvf hadoop-2.7.4.tar.gz
 ```
 
+## My AMI
+
+My AMI:
+
+AMI ID: ami-6bde1111
+
+AMI Name: Hadoop-AMI
+
+Owner: 567025740324
+
+Source: 567025740324/Hadoop-AMI
+
 ## Name Node Configuration
 
 Using the above custom Hadoop AMI, perform following steps:
