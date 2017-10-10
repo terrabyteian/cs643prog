@@ -192,3 +192,5 @@ bin/hdfs dfs -cat /output/job2/*
 bin/hdfs dfs -cat /output/job3/*
 bin/hdfs dfs -cat /output/job4/*
 ```
+
+the output of job2 and 3 cover problem 2a and the output of job4 covers problem 2b
